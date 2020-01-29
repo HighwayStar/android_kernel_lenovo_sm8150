@@ -1,4 +1,11 @@
 # SPDX-License-Identifier: GPL-2.0
+ifeq ($(CONFIG_PRODUCT_HEART),y)
+    dtbo-$(CONFIG_ARCH_SM8150) +=  += lenovo-heart-sm8150-mtp-overlay.dtbo
+    lenovo-heart-sm8150-mtp-overlay.dtbo-base := lenovo-heart-sm8150-v2.dtb
+else ifeq ($(CONFIG_PRODUCT_ZIPPO),y)
+    dtbo-$(CONFIG_ARCH_SM8150) +=  += lenovo-zippo-sm8150-mtp-overlay.dtbo
+    lenovo-zippo-sm8150-mtp-overlay.dtbo-base := lenovo-zippo-sm8150-v2.dtb
+else
 dtb-$(CONFIG_ARCH_QCOM)	+= apq8016-sbc.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= apq8096-db820c.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= ipq8074-hk01.dtb
@@ -61,7 +68,11 @@ sm8150-sdx50m-mtp-2.5k-panel-overlay.dtbo-base := sm8150.dtb sm8150-v2.dtb sm815
 sm8150-sdx50m-qrd-overlay.dtbo-base := sm8150.dtb sm8150-v2.dtb sm8150p.dtb sm8150p-v2.dtb
 sm8150-sdxprairie-cdp-overlay.dtbo-base := sm8150.dtb sm8150-v2.dtb sm8150p.dtb sm8150p-v2.dtb
 sm8150-sdxprairie-mtp-overlay.dtbo-base := sm8150.dtb sm8150-v2.dtb sm8150p.dtb sm8150p-v2.dtb
-else
+else ifeq ($(CONFIG_PRODUCT_HEART),y)
+    dtb-$(CONFIG_ARCH_SM8150) += lenovo-heart-sm8150-v2.dtb
+else ifeq ($(CONFIG_PRODUCT_ZIPPO),y)
+    dtb-$(CONFIG_ARCH_SM8150) += lenovo-zippo-sm8150-v2.dtb
+else 
 dtb-$(CONFIG_ARCH_SM8150)	+= sm8150-rumi.dtb \
 	sm8150-mtp.dtb \
 	sm8150-cdp.dtb \
@@ -193,6 +204,8 @@ endif
 dtb-$(CONFIG_ARCH_SDXPRAIRIE) += sdxprairie-rumi.dtb \
 	sdxprairie-cdp.dtb \
 	sdxprairie-mtp.dtb
+endif
+
 
 ifeq ($(CONFIG_ARM64),y)
 always		:= $(dtb-y)
