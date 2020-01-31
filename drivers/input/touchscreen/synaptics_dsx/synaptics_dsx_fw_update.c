@@ -42,26 +42,25 @@
 #include <linux/platform_device.h>
 #include <linux/input/synaptics_dsx.h>
 #include "synaptics_dsx_core.h"
+#include "SynaFirmwareImage.h"
 
 #define FW_IHEX_NAME "synaptics/startup_fw_update.bin"
 #define FW_IMAGE_NAME "synaptics/startup_fw_update.img"
+#define DO_STARTUP_FW_UPDATE
 /*
 *#define DO_STARTUP_FW_UPDATE
 */
-/*
-*#ifdef DO_STARTUP_FW_UPDATE
-*#ifdef CONFIG_FB
-*#define WAIT_FOR_FB_READY
-*#define FB_READY_WAIT_MS 100
-*#define FB_READY_TIMEOUT_S 30
-*#endif
-*#endif
-*/
-/*
-*#define MAX_WRITE_SIZE 4096
-*/
+#ifdef DO_STARTUP_FW_UPDATE
+#ifdef CONFIG_FB
+#define WAIT_FOR_FB_READY
+#define FB_READY_WAIT_MS 100
+#define FB_READY_TIMEOUT_S 30
+#endif
+#endif
 
-#define ENABLE_SYS_REFLASH false
+#define MAX_WRITE_SIZE 4096
+
+#define ENABLE_SYS_REFLASH true
 #define FORCE_UPDATE false
 #define DO_LOCKDOWN false
 
@@ -202,7 +201,6 @@ static ssize_t fwu_sysfs_write_lockdown_code_store(struct device *dev,
 static ssize_t fwu_sysfs_read_lockdown_code_show(struct device *dev,
 		struct device_attribute *attr, char *buf);
 #endif
-
 #endif
 
 enum f34_version {
@@ -2790,7 +2788,7 @@ static enum flash_area fwu_go_nogo(void)
 		dev_info(rmi4_data->pdev->dev.parent,
 				"%s: Image firmware ID older than device firmware ID\n",
 				__func__);
-		flash_area = NONE;
+		flash_area = UI_FIRMWARE;
 		goto exit;
 	}
 
@@ -5009,7 +5007,7 @@ static void fwu_startup_fw_update_work(struct work_struct *work)
 	}
 #endif
 
-	synaptics_fw_updater(NULL);
+	synaptics_fw_updater(SynaFirmware);
 
 	return;
 }
@@ -5088,7 +5086,7 @@ static ssize_t fwu_sysfs_do_recovery_store(struct device *dev,
 	if (!mutex_trylock(&fwu_sysfs_mutex))
 		return -EBUSY;
 
-	if (kstrtouint(buf, 10, &input) != 1) {
+	if (sscanf(buf, "%u", &input) != 1) {
 		retval = -EINVAL;
 		goto exit;
 	}
@@ -5136,7 +5134,7 @@ static ssize_t fwu_sysfs_do_reflash_store(struct device *dev,
 	if (!mutex_trylock(&fwu_sysfs_mutex))
 		return -EBUSY;
 
-	if (kstrtouint(buf, 10, &input) != 1) {
+	if (sscanf(buf, "%u", &input) != 1) {
 		retval = -EINVAL;
 		goto exit;
 	}
@@ -5199,7 +5197,7 @@ static ssize_t fwu_sysfs_write_config_store(struct device *dev,
 	if (!mutex_trylock(&fwu_sysfs_mutex))
 		return -EBUSY;
 
-	if (kstrtouint(buf, 10, &input) != 1) {
+	if (sscanf(buf, "%u", &input) != 1) {
 		retval = -EINVAL;
 		goto exit;
 	}
@@ -5249,7 +5247,7 @@ static ssize_t fwu_sysfs_read_config_store(struct device *dev,
 	unsigned int input;
 	struct synaptics_rmi4_data *rmi4_data = fwu->rmi4_data;
 
-	if (kstrtouint(buf, 10, &input) != 1)
+	if (sscanf(buf, "%u", &input) != 1)
 		return -EINVAL;
 
 	if (input != 1)
@@ -5488,7 +5486,7 @@ static ssize_t fwu_sysfs_write_guest_code_store(struct device *dev,
 	if (!mutex_trylock(&fwu_sysfs_mutex))
 		return -EBUSY;
 
-	if (kstrtouint(buf, 10, &input) != 1) {
+	if (sscanf(buf, "%u", &input) != 1) {
 		retval = -EINVAL;
 		goto exit;
 	}
@@ -5595,7 +5593,7 @@ static ssize_t fwu_sysfs_write_lockdown_code_store(struct device *dev,
 
 	for (i = 0; i < lockdown_data_size; i++) {
 		memcpy(temp, (buf + 2 * i), sizeof(temp));
-		if (kstrtoint(temp, 16, &ld_val) == 1)
+		if (sscanf(temp, "%02x", &ld_val) == 1)
 			*(lockdown_data + i) = ld_val & 0xff;
 	}
 
